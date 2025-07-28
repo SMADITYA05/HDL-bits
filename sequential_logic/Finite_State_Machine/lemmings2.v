@@ -1,0 +1,46 @@
+module top_module(
+    input clk,
+    input areset,
+    input bump_left,
+    input bump_right,
+    input ground,
+    output walk_left,
+    output walk_right,
+    output aaah ); 
+    reg[1:0] state, next_state;
+    parameter left=2'b00,right=2'b11,fall_l=2'b10,fall_r=2'b01;
+
+    always @(*) begin
+        case(state)
+            left:begin
+                if(~ground)
+                    next_state=fall_l;
+                else
+                next_state=(bump_left)?right:left;
+            	end
+            right:begin
+                if(~ground)
+                    next_state=fall_r;
+                else
+                next_state=(bump_right)?left:right;
+            	end
+            fall_l:begin
+                next_state=(ground)?left:fall_l;
+            	end
+            fall_r:begin
+                next_state=(ground)?right:fall_r;
+            	end
+            default:next_state=left;
+        endcase          
+    end
+
+    always @(posedge clk, posedge areset) begin
+        if(areset)
+            state<=left;
+        else
+            state<=next_state;
+    end
+    assign walk_left = (state == left);
+    assign walk_right = (state == right);
+    assign aaah = (state==fall_r||state==fall_l)?1:0;
+endmodule
